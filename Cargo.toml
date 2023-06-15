@@ -1,0 +1,12 @@
+[package]
+name = "discord-cache-cleaner"
+version = "0.1.0"
+edition = "2021"
+description = "Discord cache cleaner CLI"
+repository = "https://github.com/lis2a/discord-cache-cleaner"
+readme = "README.md"
+keywords = ["discord", "cli"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
