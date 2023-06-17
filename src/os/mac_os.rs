@@ -5,7 +5,10 @@ pub fn clean_cache() {
     println!("Searching for Application Support directory...");
     if let Some(discord_instance_dir) = ProjectDirs::from("", "", "discord") {
         let application_support_dir = discord_instance_dir.config_dir();
-        println!("Found Application Support directory: {:?}", application_support_dir);
+        println!(
+            "Found Application Support directory: {:?}",
+            application_support_dir
+        );
 
         println!("Searching for Discord cache directory...");
 
