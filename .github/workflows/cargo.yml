@@ -11,11 +11,14 @@ jobs:
     runs-on: macos-latest
     name: rustfmt discord-cache-cleaner
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout branch
+        uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "discord-cache-cleaner/gh-actions-cache"
 
@@ -28,11 +31,14 @@ jobs:
     needs:
       - fmt
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout branch
+        uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "discord-cache-cleaner/gh-actions-cache"
 
@@ -45,11 +51,14 @@ jobs:
     needs:
       - fmt
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout branch
+        uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "discord-cache-cleaner/gh-actions-cache"
 
