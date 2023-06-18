@@ -30,6 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: dtolnay/rust-toolchain@stable
+
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "discord-cache-cleaner/gh-actions-cache"
@@ -44,6 +46,8 @@ jobs:
       - fmt
     steps:
       - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
         with:
