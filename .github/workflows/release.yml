@@ -34,7 +34,7 @@ jobs:
 
       - name: Push crates.io
         run: |
-          cargo publish --verbose --frozen --token ${{ secrets.CRATES_IO_ACCESS_TOKEN }}
+          cargo publish --verbose --token ${{ secrets.CRATES_IO_ACCESS_TOKEN }}
   # リリースの作成はビルドやcrate.ioへのpushなど諸々の作業が終わってから行う必要がある
   # そのため、以下の条件を満たしておく
   #  - jobs.create-release.needs で、上部の jobs を指定する。(指定した jobs が成功し正常終了するまでこの jobs を走らせたくないため)
