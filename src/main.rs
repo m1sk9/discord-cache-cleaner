@@ -1,5 +1,5 @@
 mod os;
 
 fn main() {
-    os::clean_cache()
+    os::clean_cache();
 }
