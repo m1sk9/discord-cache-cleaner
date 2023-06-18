@@ -1,7 +1,12 @@
 name: release
 # cf. https://github.com/kazup0n/rust-draft-release/blob/main/.github/workflows/build.yml
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
 
 permissions:
   contents: write
@@ -10,8 +15,6 @@ jobs:
   release-build:
     name: Release Build
     runs-on: macos-latest
-    outputs:
-      version: ${{ steps.properties.outputs.version }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
@@ -21,13 +24,6 @@ jobs:
 
       - name: Release build discord-cache-cleaner
         run: cargo build --verbose --release
-
-      - name: Export properties
-        id: properties
-        shell: bash
-        run: |
-          VERSION="$(cargo run --bin version)"
-          echo "::set-output name=version::$VERSION"
 
   push-crates-io:
     name: Push Crates.io
@@ -59,10 +55,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
-          name: Release v${{ needs.build.outputs.version }}
-          tag_name: v${{ needs.build.outputs.version }}
+          name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
           body: |
-            # Release v${{ needs.build.outputs.version }}
+            # Release ${{ github.ref }}
             
             ## Installations
             
