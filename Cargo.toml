@@ -11,3 +11,4 @@ keywords = ["discord", "cli"]
 
 [dependencies]
 clap = { version = "4.3.4", features = ["cargo", "derive"] }
+directories = "5.0.1"

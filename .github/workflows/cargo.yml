@@ -1,0 +1,57 @@
+name: cargo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  fmt:
+    runs-on: macos-latest
+    name: rustfmt discord-cache-cleaner
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "discord-cache-cleaner/gh-actions-cache"
+
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
+
+  build:
+    runs-on: macos-latest
+    name: Build discord-cache-cleaner
+    needs:
+      - fmt
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "discord-cache-cleaner/gh-actions-cache"
+
+      - name: Run Build
+        run: cargo build --verbose
+
+  clippy:
+    runs-on: macos-latest
+    name: Clippy discord-cache-cleaner
+    needs:
+      - fmt
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "discord-cache-cleaner/gh-actions-cache"
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features

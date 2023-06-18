@@ -1,3 +1,5 @@
+mod os;
+
 fn main() {
-    println!("Hello, world!");
+    os::clean_cache()
 }
