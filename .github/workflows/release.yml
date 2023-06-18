@@ -1,0 +1,75 @@
+name: release
+# cf. https://github.com/kazup0n/rust-draft-release/blob/main/.github/workflows/build.yml
+
+on: workflow_dispatch
+
+jobs:
+  release-build:
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+        include:
+          # TODO: Support Windows and Linux
+          # https://forge.rust-lang.org/infra/other-installation-methods.html
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    outputs:
+      version: ${{ steps.properties.outputs.version }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Release build discord-cache-cleaner
+        run: cargo build --verbose --release --target=${{ matrix.target }}
+
+      - name: Export properties
+        id: properties
+        shell: bash
+        run: |
+          VERSION="$(cargo run --bin version)"
+          echo "::set-output name=version::$VERSION"}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: discord-cache-cleaner-v${{ steps.properties.outputs.version }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/discord-cache-cleaner
+  push-release:
+    name: Push release (draft)
+    needs:
+      - release-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}
+          path: release-build/
+
+      - name: Zip the artifact
+        run: zip -j release-build/discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}.zip release-build/discord-cache-cleaner
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release-build/discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}
+          body: |
+            # discord-cache-cleaner
+            ## v${{ needs.release-build.outputs.version }}
+            - x86_64-apple-darwin
+            - aarch64-apple-darwin
+          name: release v${{ needs.release-build.outputs.version }}
+          draft: true
