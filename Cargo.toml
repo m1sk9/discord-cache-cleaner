@@ -6,6 +6,7 @@ description = "Discord cache cleaner CLI"
 repository = "https://github.com/lis2a/discord-cache-cleaner"
 readme = "README.md"
 keywords = ["discord", "cli"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
