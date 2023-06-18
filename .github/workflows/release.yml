@@ -3,6 +3,9 @@ name: release
 
 on: workflow_dispatch
 
+permissions:
+  contents: write
+
 jobs:
   release-build:
     strategy:
@@ -35,19 +38,77 @@ jobs:
         shell: bash
         run: |
           VERSION="$(cargo run --bin version)"
-          echo "::set-output name=version::$VERSION"}
+          echo "::set-output name=version::$VERSION"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: discord-cache-cleaner-v${{ steps.properties.outputs.version }}-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/discord-cache-cleaner
-  push-release:
-    name: Push release (draft)
+          retention-days: 3
+
+  push-crates-io:
+    name: Push crates.io
     needs:
       - release-build
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
 
+      - name: Push crates.io
+        run: |
+          cargo publish --verbose --frozen --token ${{ secrets.CRATES_IO_ACCESS_TOKEN }}
+  # リリースの作成はビルドやcrate.ioへのpushなど諸々の作業が終わってから行う必要がある
+  # そのため、以下の条件を満たしておく
+  #  - jobs.create-release.needs で、上部の jobs を指定する。(指定した jobs が成功し正常終了するまでこの jobs を走らせたくないため)
+  #  - 必ず jobs の下部に書くこと (これは jobs.create-release の実行が最後のため)
+  create-release:
+    name: Create release (draft)
+    needs:
+      - release-build
+      - push-crates-io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: Release v${{ needs.build.outputs.version }}
+          tag_name: v${{ needs.build.outputs.version }}
+          body: |
+            # Release v${{ needs.build.outputs.version }}
+            
+            ## Installations
+            
+            ### Usage crate.io
+            
+            ```shell
+            cargo install discord-cache-cleaner
+            ```
+          draft: true
+  # リリースの作成が完了したら、ビルドしたバイナリをリリースにアタッチする形でアップロード
+  attach-artifact:
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+        include:
+          # TODO: Support Windows and Linux
+          # https://forge.rust-lang.org/infra/other-installation-methods.html
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+    name: Attach artifact
+    needs:
+      - release-build
+      - create-release
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
         uses: actions/checkout@v3
@@ -56,20 +117,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}
-          path: release-build/
 
-      - name: Zip the artifact
-        run: zip -j release-build/discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}.zip release-build/discord-cache-cleaner
-
-      - name: Create release
-        uses: softprops/action-gh-release@v1
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
         with:
-          files: |
-            release-build/discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}
-          body: |
-            # discord-cache-cleaner
-            ## v${{ needs.release-build.outputs.version }}
-            - x86_64-apple-darwin
-            - aarch64-apple-darwin
-          name: release v${{ needs.release-build.outputs.version }}
-          draft: true
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: target/${{ matrix.target }}/release/discord-cache-cleaner
+          asset_name: discord-cache-cleaner-v${{ needs.release-build.outputs.version }}-${{ matrix.target }}
+          asset_content_type: application/octet-stream
